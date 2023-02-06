@@ -1,8 +1,8 @@
-﻿using Dalamud.Game.Command;
+﻿using Dalamud.Game.ClientState;
+using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 
 namespace ClarityInChaos
@@ -16,6 +16,7 @@ namespace ClarityInChaos
     public DalamudPluginInterface PluginInterface { get; init; }
     public CommandManager CommandManager { get; init; }
     public ChatGui ChatGui { get; init; }
+    public ClientState ClientState { get; init; }
     public Configuration Configuration { get; init; }
     public WindowSystem WindowSystem { get; init; }
     public BattleEffectsConfigurator BattleEffectsConfigurator { get; init; }
@@ -24,13 +25,15 @@ namespace ClarityInChaos
     public ClarityInChaosPlugin(
         [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
         [RequiredVersion("1.0")] CommandManager commandManager,
-        [RequiredVersion("1.0")] ChatGui chatGui)
+        [RequiredVersion("1.0")] ChatGui chatGui,
+        [RequiredVersion("1.0")] ClientState clientState)
     {
       pluginInterface.Create<Service>();
 
       PluginInterface = pluginInterface;
       CommandManager = commandManager;
       ChatGui = chatGui;
+      ClientState = clientState;
       WindowSystem = new("ClarityInChaosPlugin");
 
       Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();

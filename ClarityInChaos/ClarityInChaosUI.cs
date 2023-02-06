@@ -53,6 +53,13 @@ namespace ClarityInChaos
       var green = new Vector4(0, 255, 0, 255);
 
       ImGui.TextColored(green, $"Current BattleEffects: {plugin.BattleEffectsConfigurator.GetCurrentGroupingSize()}");
+
+      if (plugin.BattleEffectsConfigurator.IsTerritoryAllianceLike())
+      {
+        ImGui.SameLine();
+        ImGui.TextColored(green, $"(Misc. Duty detected)");
+      }
+
       ImGui.Indent();
       ImGui.TextColored(green, $"Self: {plugin.BattleEffectsConfigurator.BattleEffectSelf}");
       ImGui.TextColored(green, $"Party: {plugin.BattleEffectsConfigurator.BattleEffectParty}");

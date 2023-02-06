@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using Lumina.Excel.GeneratedSheets;
 
 namespace ClarityInChaos
 {
@@ -13,6 +16,8 @@ namespace ClarityInChaos
     private readonly ConfigModule* configModule;
 
     private readonly GroupManager* groupManager;
+
+    public readonly List<uint> AllianceDutyIds;
 
     public BattleEffect BattleEffectSelf
     {
@@ -55,6 +60,17 @@ namespace ClarityInChaos
       this.plugin = plugin;
       configModule = ConfigModule.Instance();
       groupManager = GroupManager.Instance();
+
+      AllianceDutyIds = Service.DataManager
+        .GetExcelSheet<TerritoryType>(Dalamud.ClientLanguage.English)!
+        .Where((r) => r.TerritoryIntendedUse is 41 or 48)
+        .Select((r) => r.RowId)
+        .ToList();
+    }
+
+    public bool IsTerritoryAllianceLike()
+    {
+      return AllianceDutyIds.FindIndex((r) => r == plugin.ClientState.TerritoryType) >= 0;
     }
 
     public GroupingSize GetCurrentGroupingSize()
@@ -78,6 +94,11 @@ namespace ClarityInChaos
         _ when allianceFlags is not 0 => GroupingSize.Alliance,
         _ => GroupingSize.FullParty
       };
+
+      if (IsTerritoryAllianceLike())
+      {
+        currentSize = GroupingSize.Alliance;
+      }
 
       return currentSize;
     }
