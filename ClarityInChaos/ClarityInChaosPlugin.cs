@@ -74,7 +74,7 @@ namespace ClarityInChaos
     {
       if (Configuration.DebugMessages)
       {
-        ChatGui.Print($"Clarity In Combat: {message}");
+        ChatGui.Print($"Clarity In Chaos: {message}");
       }
     }
 
