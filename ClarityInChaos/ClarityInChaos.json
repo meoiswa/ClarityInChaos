@@ -1,0 +1,14 @@
+{
+  "Author": "Meoiswa",
+  "Name": "ClarityInChaos",
+  "Punchline": "Seek visual serenity in the midst of Chaos",
+  "Description": "Automatically adjusts the Battle Effects settings according to Party size.",
+  "InternalName": "ClarityInChaos",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "UI",
+    "tweak",
+    "battle effects",
+    "party"
+  ]
+}
