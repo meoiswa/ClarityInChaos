@@ -49,6 +49,10 @@ namespace ClarityInChaos
         plugin.Configuration.Enabled = enabled;
         plugin.Configuration.Save();
       }
+      if (plugin.Configuration.Enabled)
+      {
+        ImGui.TextColored(new Vector4(255, 255, 0, 255), $"Warning: This plugin overrides the official Battle Effects settings menu,\nrendering them unusable.");
+      }
 
       var green = new Vector4(0, 255, 0, 255);
 
@@ -195,7 +199,7 @@ namespace ClarityInChaos
         ImGui.TextWrapped("Use these to test your settings.");
 
         var debugMessages = plugin.Configuration.DebugMessages;
-        if (ImGui.Checkbox("Debug Messages", ref debugMessages))
+        if (ImGui.Checkbox("Print Debug Messages to Chat", ref debugMessages))
         {
           plugin.Configuration.DebugMessages = debugMessages;
           plugin.Configuration.Save();

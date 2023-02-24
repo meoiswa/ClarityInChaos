@@ -3,6 +3,7 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 
 namespace ClarityInChaos
@@ -75,6 +76,7 @@ namespace ClarityInChaos
 
     public void PrintDebug(string message)
     {
+      PluginLog.LogDebug(message);
       if (Configuration.DebugMessages)
       {
         ChatGui.Print($"Clarity In Chaos: {message}");
