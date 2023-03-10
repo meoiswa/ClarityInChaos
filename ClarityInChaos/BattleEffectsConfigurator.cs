@@ -19,6 +19,7 @@ namespace ClarityInChaos
 
     public readonly List<uint> AllianceDutyIds;
 
+    private bool firstLoop = true;
     private bool lastEnabled;
 
     private GroupingSize lastGroupingSize;
@@ -164,12 +165,13 @@ namespace ClarityInChaos
 
         var changed = false;
 
-        if (currentSize != lastGroupingSize || lastEnabled != plugin.Configuration.Enabled)
+        if (currentSize != lastGroupingSize || lastEnabled != plugin.Configuration.Enabled || firstLoop)
         {
           BattleEffectSelf = configForSize.Self;
           BattleEffectParty = configForSize.Party;
           BattleEffectOther = configForSize.Other;
           changed = true;
+          firstLoop = false;
         }
         else
         {
