@@ -52,6 +52,7 @@ namespace ClarityInChaos
         GroupingSize.LightParty => LightParty,
         GroupingSize.FullParty => FullParty,
         GroupingSize.Alliance => Alliance,
+        GroupingSize.Backup => Backup,
         _ => Solo,
       };
     }

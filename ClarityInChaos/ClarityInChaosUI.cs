@@ -40,6 +40,59 @@ namespace ClarityInChaos
       plugin.Configuration.Save();
     }
 
+    private void PrettyEffect(string label, BattleEffect effect)
+    {
+      ImGui.Text($"{label}:");
+      ImGui.SameLine();
+      ImGui.TextColored(ColorForEffect(effect), effect.ToString());
+    }
+
+    private Vector4 ColorForEffect(BattleEffect effect)
+    {
+      Vector4 color = new Vector4(255, 255, 255, 255);
+      switch (effect)
+      {
+        case BattleEffect.All:
+          color = new Vector4(0, 255, 0, 255);
+          break;
+        case BattleEffect.Limited:
+          color = new Vector4(255, 255, 0, 255);
+          break;
+        case BattleEffect.None:
+          color = new Vector4(255, 0, 0, 255);
+          break;
+      }
+      return color;
+    }
+
+    private void TextCentered(string text, Vector4? color = null)
+    {
+      var win_width = ImGui.GetWindowSize().X;
+      var text_width = ImGui.CalcTextSize(text).X;
+
+      var text_indentation = (win_width - text_width) * 0.5f;
+
+      var min_indentation = 20.0f;
+      if (text_indentation <= min_indentation)
+      {
+        text_indentation = min_indentation;
+      }
+
+      ImGui.NewLine();
+      ImGui.SameLine(text_indentation);
+      ImGui.PushTextWrapPos(win_width - text_indentation);
+      if (color != null)
+      {
+        ImGui.PushStyleColor(ImGuiCol.Text, color.Value);
+      }
+      ImGui.TextWrapped(text);
+      if (color != null)
+      {
+        ImGui.PopStyleColor();
+      }
+      ImGui.PopTextWrapPos();
+    }
+
     private void DrawSectionMasterEnable()
     {
       // can't ref a property, so use a local copy
@@ -49,14 +102,19 @@ namespace ClarityInChaos
         plugin.Configuration.Enabled = enabled;
         plugin.Configuration.Save();
       }
-      if (plugin.Configuration.Enabled)
-      {
-        ImGui.TextColored(new Vector4(255, 255, 0, 255), $"Warning: This plugin overrides the official Battle Effects settings menu,\nrendering them unusable.");
-      }
+
+      ImGui.Separator();
 
       var green = new Vector4(0, 255, 0, 255);
 
-      ImGui.TextColored(green, $"Current BattleEffects: {plugin.BattleEffectsConfigurator.GetCurrentGroupingSize()}");
+      if (plugin.Configuration.Enabled)
+      {
+        ImGui.TextColored(green, $"Current BattleEffects: {plugin.BattleEffectsConfigurator.GetCurrentGroupingSize()}");
+      }
+      else
+      {
+        ImGui.Text($"Current BattleEffects: Saved In-Game Settings");
+      }
 
       if (plugin.BattleEffectsConfigurator.IsTerritoryAllianceLike())
       {
@@ -65,9 +123,9 @@ namespace ClarityInChaos
       }
 
       ImGui.Indent();
-      ImGui.TextColored(green, $"Self: {plugin.BattleEffectsConfigurator.BattleEffectSelf}");
-      ImGui.TextColored(green, $"Party: {plugin.BattleEffectsConfigurator.BattleEffectParty}");
-      ImGui.TextColored(green, $"Other: {plugin.BattleEffectsConfigurator.BattleEffectOther}");
+      PrettyEffect("Self", plugin.BattleEffectsConfigurator.BattleEffectSelf);
+      PrettyEffect("Party", plugin.BattleEffectsConfigurator.BattleEffectParty);
+      PrettyEffect("Others (excl. PvP)", plugin.BattleEffectsConfigurator.BattleEffectOther);
       ImGui.Unindent();
     }
 
@@ -142,52 +200,71 @@ namespace ClarityInChaos
       return changed;
     }
 
-    private void DrawGroupingSizeGroup(GroupingSize size)
+    private void DrawGroupingSizeGroup(GroupingSize size, bool isActive)
     {
       var configForGroupSize = plugin.Configuration.GetconfigForGroupingSize(size);
       if (DrawCheckboxesGroup(ref configForGroupSize))
       {
+        if (isActive)
+        {
+          plugin.BattleEffectsConfigurator.UIChange(size);
+        }
         plugin.Configuration.Save();
+      }
+    }
+
+    private void DrawPrettyHeader(GroupingSize size, bool isActive)
+    {
+
+      string headerText = size switch
+      {
+        GroupingSize.Solo => "Solo",
+        GroupingSize.LightParty => "Light Party (4-man)",
+        GroupingSize.FullParty => "Full Party (8-man)",
+        GroupingSize.Alliance => "Alliance (24-man)",
+        _ => "Saved In-Game Settings",
+      };
+
+      if (isActive)
+      {
+        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
+      }
+
+      if (ImGui.CollapsingHeader(headerText))
+      {
+        if (isActive)
+        {
+          ImGui.PopStyleColor();
+        }
+
+        ImGui.Indent();
+
+        DrawGroupingSizeGroup(size, isActive);
+
+        ImGui.Unindent();
+      }
+      else
+      {
+        if (isActive)
+        {
+          ImGui.PopStyleColor();
+        }
       }
     }
 
     private void DrawMatrixSection()
     {
-      if (ImGui.CollapsingHeader("Solo"))
-      {
-        ImGui.Indent();
+      var groupSize = plugin.BattleEffectsConfigurator.GetCurrentGroupingSize();
 
-        DrawGroupingSizeGroup(GroupingSize.Solo);
+      DrawPrettyHeader(GroupingSize.Solo, groupSize == GroupingSize.Solo && plugin.Configuration.Enabled);
 
-        ImGui.Unindent();
-      }
+      DrawPrettyHeader(GroupingSize.LightParty, groupSize == GroupingSize.LightParty && plugin.Configuration.Enabled);
 
-      if (ImGui.CollapsingHeader("Light Party (4-man)"))
-      {
-        ImGui.Indent();
+      DrawPrettyHeader(GroupingSize.FullParty, groupSize == GroupingSize.FullParty && plugin.Configuration.Enabled);
 
-        DrawGroupingSizeGroup(GroupingSize.LightParty);
+      DrawPrettyHeader(GroupingSize.Alliance, groupSize == GroupingSize.Alliance && plugin.Configuration.Enabled);
 
-        ImGui.Unindent();
-      }
-
-      if (ImGui.CollapsingHeader("Full Party (8-man)"))
-      {
-        ImGui.Indent();
-
-        DrawGroupingSizeGroup(GroupingSize.FullParty);
-
-        ImGui.Unindent();
-      }
-
-      if (ImGui.CollapsingHeader("Alliance (24-man)"))
-      {
-        ImGui.Indent();
-
-        DrawGroupingSizeGroup(GroupingSize.Alliance);
-
-        ImGui.Unindent();
-      }
+      DrawPrettyHeader(GroupingSize.Backup, !plugin.Configuration.Enabled);
     }
 
     public void DrawDebugSection()
@@ -197,13 +274,6 @@ namespace ClarityInChaos
         ImGui.Indent();
 
         ImGui.TextWrapped("Use these to test your settings.");
-
-        var debugMessages = plugin.Configuration.DebugMessages;
-        if (ImGui.Checkbox("Print Debug Messages to Chat", ref debugMessages))
-        {
-          plugin.Configuration.DebugMessages = debugMessages;
-          plugin.Configuration.Save();
-        }
 
         var psize = plugin.Configuration.DebugPartySize;
         var forcePSize = plugin.Configuration.DebugForcePartySize;
@@ -218,13 +288,6 @@ namespace ClarityInChaos
           plugin.Configuration.DebugPartySize = Math.Max(psize, 0);
           plugin.Configuration.Save();
         }
-
-        ImGui.Text($"Backup BattleEffects:");
-        ImGui.Indent();
-        ImGui.Text($"Self: {plugin.Configuration.Backup.Self}");
-        ImGui.Text($"Party: {plugin.Configuration.Backup.Party}");
-        ImGui.Text($"Other: {plugin.Configuration.Backup.Other}");
-        ImGui.Unindent();
 
         ImGui.Unindent();
       }

@@ -13,5 +13,6 @@ namespace ClarityInChaos
     LightParty,
     FullParty,
     Alliance,
+    Backup,
   }
 }

@@ -19,6 +19,10 @@ namespace ClarityInChaos
 
     public readonly List<uint> AllianceDutyIds;
 
+    private bool lastEnabled;
+
+    private GroupingSize lastGroupingSize;
+
     public BattleEffect BattleEffectSelf
     {
       get
@@ -60,6 +64,7 @@ namespace ClarityInChaos
       this.plugin = plugin;
       configModule = ConfigModule.Instance();
       groupManager = GroupManager.Instance();
+      lastEnabled = plugin.Configuration.Enabled;
 
       AllianceDutyIds = Service.DataManager
         .GetExcelSheet<TerritoryType>(Dalamud.ClientLanguage.English)!
@@ -111,39 +116,94 @@ namespace ClarityInChaos
       BattleEffectOther = backup.Other;
     }
 
+    public void UIChange(GroupingSize size)
+    {
+      var config = plugin.Configuration.GetconfigForGroupingSize(size);
+      BattleEffectSelf = config.Self;
+      BattleEffectParty = config.Party;
+      BattleEffectOther = config.Other;
+    }
+
     public void OnUpdate(Framework framework)
     {
-      if (!plugin.Configuration.Enabled)
+      if (!plugin.Configuration.Enabled && lastEnabled)
       {
-        return;
+        if (BattleEffectSelf != plugin.Configuration.Backup.Self)
+        {
+          BattleEffectSelf = plugin.Configuration.Backup.Self;
+        }
+        if (BattleEffectParty != plugin.Configuration.Backup.Party)
+        {
+          BattleEffectParty = plugin.Configuration.Backup.Party;
+        }
+        if (BattleEffectOther != plugin.Configuration.Backup.Other)
+        {
+          BattleEffectOther = plugin.Configuration.Backup.Other;
+        }
+      }
+      else if (!plugin.Configuration.Enabled && !lastEnabled)
+      {
+        if (plugin.Configuration.Backup.Self != BattleEffectSelf)
+        {
+          plugin.Configuration.Backup.Self = BattleEffectSelf;
+        }
+        if (plugin.Configuration.Backup.Party != BattleEffectParty)
+        {
+          plugin.Configuration.Backup.Party = BattleEffectParty;
+        }
+        if (plugin.Configuration.Backup.Other != BattleEffectOther)
+        {
+          plugin.Configuration.Backup.Other = BattleEffectOther;
+        }
+      }
+      else
+      {
+        var currentSize = GetCurrentGroupingSize();
+
+        var configForSize = plugin.Configuration.GetconfigForGroupingSize(currentSize);
+
+        var changed = false;
+
+        if (currentSize != lastGroupingSize || lastEnabled != plugin.Configuration.Enabled)
+        {
+          BattleEffectSelf = configForSize.Self;
+          BattleEffectParty = configForSize.Party;
+          BattleEffectOther = configForSize.Other;
+          changed = true;
+        }
+        else
+        {
+          if (BattleEffectSelf != configForSize.Self)
+          {
+            configForSize.Self = BattleEffectSelf;
+            changed = true;
+          }
+          if (BattleEffectParty != configForSize.Party)
+          {
+            configForSize.Party = BattleEffectParty;
+            changed = true;
+          }
+          if (BattleEffectOther != configForSize.Other)
+          {
+            configForSize.Other = BattleEffectOther;
+            changed = true;
+          }
+
+          if (changed)
+          {
+            plugin.Configuration.Save();
+          }
+        }
+
+        if (changed)
+        {
+          plugin.PrintDebug("Updated BattleEffects!");
+        }
+
+        lastGroupingSize = currentSize;
       }
 
-      var currentSize = GetCurrentGroupingSize();
-
-      var configForSize = plugin.Configuration.GetconfigForGroupingSize(currentSize);
-
-      var changed = false;
-
-      if (BattleEffectSelf != configForSize.Self)
-      {
-        BattleEffectSelf = configForSize.Self;
-        changed = true;
-      }
-      if (BattleEffectParty != configForSize.Party)
-      {
-        BattleEffectParty = configForSize.Party;
-        changed = true;
-      }
-      if (BattleEffectOther != configForSize.Other)
-      {
-        BattleEffectOther = configForSize.Other;
-        changed = true;
-      }
-
-      if (changed)
-      {
-        plugin.PrintDebug("Updated BattleEffects!");
-      }
+      lastEnabled = plugin.Configuration.Enabled;
     }
   }
 }
