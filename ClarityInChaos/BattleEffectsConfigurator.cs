@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Conditions;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.GeneratedSheets;
@@ -19,8 +20,11 @@ namespace ClarityInChaos
 
     public readonly List<uint> AllianceDutyIds;
 
+    private ConfigForGroupingSize lastActiveConfig;
+
     private bool firstLoop = true;
     private bool lastEnabled;
+    private bool lastDebugDuty;
 
     private GroupingSize lastGroupingSize;
 
@@ -66,12 +70,15 @@ namespace ClarityInChaos
       configModule = ConfigModule.Instance();
       groupManager = GroupManager.Instance();
       lastEnabled = plugin.Configuration.Enabled;
+      lastDebugDuty = plugin.Configuration.DebugForceInDuty;
 
       AllianceDutyIds = Service.DataManager
         .GetExcelSheet<TerritoryType>(Dalamud.ClientLanguage.English)!
         .Where((r) => r.TerritoryIntendedUse is 41 or 48)
         .Select((r) => r.RowId)
         .ToList();
+        
+      lastActiveConfig = plugin.Configuration.GetConfigForGroupingSize(GetCurrentGroupingSize(), plugin.BoundByDuty);
     }
 
     public bool IsTerritoryAllianceLike()
@@ -119,7 +126,8 @@ namespace ClarityInChaos
 
     public void UIChange(GroupingSize size)
     {
-      var config = plugin.Configuration.GetconfigForGroupingSize(size);
+
+      var config = plugin.Configuration.GetConfigForGroupingSize(size, plugin.BoundByDuty);
       BattleEffectSelf = config.Self;
       BattleEffectParty = config.Party;
       BattleEffectOther = config.Other;
@@ -159,35 +167,32 @@ namespace ClarityInChaos
       }
       else
       {
-        var currentSize = GetCurrentGroupingSize();
-
-        var configForSize = plugin.Configuration.GetconfigForGroupingSize(currentSize);
+        var activeConfig = plugin.Configuration.GetConfigForGroupingSize(GetCurrentGroupingSize(), plugin.BoundByDuty);
 
         var changed = false;
 
-        if (currentSize != lastGroupingSize || lastEnabled != plugin.Configuration.Enabled || firstLoop)
+        if (activeConfig != lastActiveConfig)
         {
-          BattleEffectSelf = configForSize.Self;
-          BattleEffectParty = configForSize.Party;
-          BattleEffectOther = configForSize.Other;
+          BattleEffectSelf = activeConfig.Self;
+          BattleEffectParty = activeConfig.Party;
+          BattleEffectOther = activeConfig.Other;
           changed = true;
-          firstLoop = false;
         }
         else
         {
-          if (BattleEffectSelf != configForSize.Self)
+          if (BattleEffectSelf != activeConfig.Self)
           {
-            configForSize.Self = BattleEffectSelf;
+            activeConfig.Self = BattleEffectSelf;
             changed = true;
           }
-          if (BattleEffectParty != configForSize.Party)
+          if (BattleEffectParty != activeConfig.Party)
           {
-            configForSize.Party = BattleEffectParty;
+            activeConfig.Party = BattleEffectParty;
             changed = true;
           }
-          if (BattleEffectOther != configForSize.Other)
+          if (BattleEffectOther != activeConfig.Other)
           {
-            configForSize.Other = BattleEffectOther;
+            activeConfig.Other = BattleEffectOther;
             changed = true;
           }
 
@@ -202,10 +207,8 @@ namespace ClarityInChaos
           plugin.PrintDebug("Updated BattleEffects!");
         }
 
-        lastGroupingSize = currentSize;
+        lastActiveConfig = activeConfig;
       }
-
-      lastEnabled = plugin.Configuration.Enabled;
     }
   }
 }

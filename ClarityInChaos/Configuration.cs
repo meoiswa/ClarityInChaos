@@ -15,62 +15,132 @@ namespace ClarityInChaos
 
     public bool Enabled { get; set; } = true;
 
-    public ConfigForGroupingSize Backup { get; set; } = DefaultConfigForGroupingSize(GroupingSize.Solo);
-    public ConfigForGroupingSize Solo { get; set; } = DefaultConfigForGroupingSize(GroupingSize.Solo);
-    public ConfigForGroupingSize LightParty { get; set; } = DefaultConfigForGroupingSize(GroupingSize.LightParty);
-    public ConfigForGroupingSize FullParty { get; set; } = DefaultConfigForGroupingSize(GroupingSize.FullParty);
-    public ConfigForGroupingSize Alliance { get; set; } = DefaultConfigForGroupingSize(GroupingSize.Alliance);
-    
+    public ConfigForBackup Backup { get; init; }
+    public ConfigForSolo Solo { get; init; }
+    public ConfigForLightParty LightParty { get; init; }
+    public ConfigForFullParty FullParty { get; init; }
+    public ConfigForAlliance Alliance { get; init; }
+
     public bool DebugMessages = false;
 
     public bool DebugForcePartySize = false;
     public int DebugPartySize = 0;
+    public bool DebugForceInDuty = false;
 
     // the below exist just to make saving less cumbersome
     [NonSerialized]
     private DalamudPluginInterface? pluginInterface;
-    public void Initialize(DalamudPluginInterface pluginInterface) => this.pluginInterface = pluginInterface;
+
+    public Configuration()
+    {
+      Backup = new ConfigForBackup();
+      ApplyDefaultConfig(Backup);
+      Solo = new ConfigForSolo();
+      ApplyDefaultConfig(Solo);
+      LightParty = new ConfigForLightParty();
+      ApplyDefaultConfig(LightParty);
+      FullParty = new ConfigForFullParty();
+      ApplyDefaultConfig(FullParty);
+      Alliance = new ConfigForAlliance();
+      ApplyDefaultConfig(Alliance);
+    }
+
+    public void Initialize(DalamudPluginInterface pluginInterface)
+    {
+      this.pluginInterface = pluginInterface;
+    }
+
     public void Save()
     {
       pluginInterface!.SavePluginConfig(this);
     }
 
-    public static ConfigForGroupingSize DefaultConfigForGroupingSize(GroupingSize size)
+    private void ApplyDefaultConfig(ConfigForGroupingSize config)
     {
-      return new ConfigForGroupingSize(
-        size,
-        (BattleEffect) ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectSelf),
-        (BattleEffect) ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectParty),
-        (BattleEffect) ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectOther)
-      );
+      config.Self = (BattleEffect)ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectSelf);
+      config.Party = (BattleEffect)ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectParty);
+      config.Other = (BattleEffect)ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectOther);
     }
 
-    public ConfigForGroupingSize GetconfigForGroupingSize(GroupingSize size)
+    private bool InDutyFilter(ConfigForGroupingSize config, bool inDuty)
+    {
+      return !config.OnlyInDuty || (config.OnlyInDuty && inDuty);
+    }
+
+    private ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size)
     {
       return size switch
       {
+        GroupingSize.Solo => Solo,
         GroupingSize.LightParty => LightParty,
         GroupingSize.FullParty => FullParty,
         GroupingSize.Alliance => Alliance,
-        GroupingSize.Backup => Backup,
-        _ => Solo,
+        _ => Backup,
       };
+    }
+
+    private ConfigForGroupingSize GetConfigForGroupingSizeNotInDuty(GroupingSize size)
+    {
+      var config = GetConfigForGroupingSize(size);
+      if (config.OnlyInDuty)
+      {
+        if (size == GroupingSize.Backup)
+        {
+          return Backup;
+        }
+        else
+        {
+          return GetConfigForGroupingSizeNotInDuty(size - 1);
+        }
+      }
+      return config;
+    }
+
+    public ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size, bool inDuty)
+    {
+      if (inDuty)
+      {
+        return GetConfigForGroupingSize(size);
+      }
+      else
+      {
+        return GetConfigForGroupingSizeNotInDuty(size);
+      }
     }
   }
 
-  public class ConfigForGroupingSize
+  public abstract class ConfigForGroupingSize
   {
-    public GroupingSize Size { get; init; }
+    public abstract GroupingSize Size { get; }
     public BattleEffect Self { get; set; }
-    public BattleEffect Party {get; set; }
+    public BattleEffect Party { get; set; }
     public BattleEffect Other { get; set; }
 
-    public ConfigForGroupingSize(GroupingSize size, BattleEffect self, BattleEffect party, BattleEffect other)
-    {
-      Size = size;
-      Self = self;
-      Party = party;
-      Other = other;
-    }
+    public bool OnlyInDuty { get; set; }
+  }
+
+  public class ConfigForBackup : ConfigForGroupingSize
+  {
+    public override GroupingSize Size => GroupingSize.Backup;
+  }
+
+  public class ConfigForSolo : ConfigForGroupingSize
+  {
+    public override GroupingSize Size => GroupingSize.Solo;
+  }
+
+  public class ConfigForLightParty : ConfigForGroupingSize
+  {
+    public override GroupingSize Size => GroupingSize.LightParty;
+  }
+
+  public class ConfigForFullParty : ConfigForGroupingSize
+  {
+    public override GroupingSize Size => GroupingSize.FullParty;
+  }
+
+  public class ConfigForAlliance : ConfigForGroupingSize
+  {
+    public override GroupingSize Size => GroupingSize.Alliance;
   }
 }

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
@@ -21,7 +22,13 @@ namespace ClarityInChaos
     public Configuration Configuration { get; init; }
     public WindowSystem WindowSystem { get; init; }
     public BattleEffectsConfigurator BattleEffectsConfigurator { get; init; }
+    public Condition Condition { get; init; }
     public ClarityInChaosUI Window { get; init; }
+
+    public bool BoundByDuty => Configuration.DebugForceInDuty ||
+                               (Condition[ConditionFlag.BoundByDuty]
+                                && !Condition[ConditionFlag.BetweenAreas]
+                                && !Condition[ConditionFlag.OccupiedInCutSceneEvent]);
 
     public ClarityInChaosPlugin(
         [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -30,6 +37,7 @@ namespace ClarityInChaos
         [RequiredVersion("1.0")] ClientState clientState)
     {
       pluginInterface.Create<Service>();
+      Condition = Service.Condition;
 
       PluginInterface = pluginInterface;
       CommandManager = commandManager;
@@ -41,7 +49,6 @@ namespace ClarityInChaos
       Configuration.Initialize(PluginInterface);
 
       BattleEffectsConfigurator = new BattleEffectsConfigurator(this);
-      Service.Framework.Update += BattleEffectsConfigurator.OnUpdate;
 
       Window = new ClarityInChaosUI(this)
       {
@@ -55,6 +62,7 @@ namespace ClarityInChaos
         HelpMessage = "opens the configuration window"
       });
 
+      Service.Framework.Update += BattleEffectsConfigurator.OnUpdate;
       PluginInterface.UiBuilder.Draw += DrawUI;
       PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
     }

@@ -9,10 +9,10 @@ namespace ClarityInChaos
 
   public enum GroupingSize
   {
+    Backup,
     Solo,
     LightParty,
     FullParty,
     Alliance,
-    Backup,
   }
 }

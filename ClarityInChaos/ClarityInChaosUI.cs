@@ -65,35 +65,7 @@ namespace ClarityInChaos
       return color;
     }
 
-    private void TextCentered(string text, Vector4? color = null)
-    {
-      var win_width = ImGui.GetWindowSize().X;
-      var text_width = ImGui.CalcTextSize(text).X;
-
-      var text_indentation = (win_width - text_width) * 0.5f;
-
-      var min_indentation = 20.0f;
-      if (text_indentation <= min_indentation)
-      {
-        text_indentation = min_indentation;
-      }
-
-      ImGui.NewLine();
-      ImGui.SameLine(text_indentation);
-      ImGui.PushTextWrapPos(win_width - text_indentation);
-      if (color != null)
-      {
-        ImGui.PushStyleColor(ImGuiCol.Text, color.Value);
-      }
-      ImGui.TextWrapped(text);
-      if (color != null)
-      {
-        ImGui.PopStyleColor();
-      }
-      ImGui.PopTextWrapPos();
-    }
-
-    private void DrawSectionMasterEnable()
+    private void DrawSectionMasterEnable(ConfigForGroupingSize activeConfig)
     {
       // can't ref a property, so use a local copy
       var enabled = plugin.Configuration.Enabled;
@@ -109,7 +81,7 @@ namespace ClarityInChaos
 
       if (plugin.Configuration.Enabled)
       {
-        ImGui.TextColored(green, $"Current BattleEffects: {plugin.BattleEffectsConfigurator.GetCurrentGroupingSize()}");
+        ImGui.TextColored(green, $"Current BattleEffects: {activeConfig.Size}");
       }
       else
       {
@@ -129,31 +101,37 @@ namespace ClarityInChaos
       ImGui.Unindent();
     }
 
-    private bool DrawCheckboxesGroup(ref ConfigForGroupingSize config)
+    private bool DrawTableGroup(ref ConfigForGroupingSize config)
     {
       var changed = false;
       var self = config.Self;
       var party = config.Party;
       var other = config.Other;
+      var onlyInDuty = config.OnlyInDuty;
 
       ImGui.PushID($"{config.Size}");
 
       ImGui.BeginTable("Table", 4);
 
 
-      if (DrawCheckboxesLine($"Own", ref self))
+      if (DrawRadiosLine($"Own", ref self))
       {
         config.Self = self;
         changed = true;
       }
-      if (DrawCheckboxesLine($"Party", ref party))
+      if (DrawRadiosLine($"Party", ref party))
       {
         config.Party = party;
         changed = true;
       }
-      if (DrawCheckboxesLine($"Others (excl. PvP)", ref other))
+      if (DrawRadiosLine($"Others (excl. PvP)", ref other))
       {
         config.Other = other;
+        changed = true;
+      }
+      if (config.Size != GroupingSize.Backup && config.Size != GroupingSize.Alliance && DrawOnlyInDutyCheckbox($"Only In Duty", ref onlyInDuty))
+      {
+        config.OnlyInDuty = onlyInDuty;
         changed = true;
       }
 
@@ -164,7 +142,28 @@ namespace ClarityInChaos
       return changed;
     }
 
-    private bool DrawCheckboxesLine(string label, ref BattleEffect effect)
+    private bool DrawOnlyInDutyCheckbox(string label, ref bool onlyInDuty)
+    {
+      var changed = false;
+
+      ImGui.TableNextRow();
+      ImGui.TableSetColumnIndex(0);
+      ImGui.Text(label);
+
+      ImGui.PushID(label);
+
+      ImGui.TableSetColumnIndex(1);
+      if (ImGui.Checkbox($"##{label}", ref onlyInDuty))
+      {
+        changed = true;
+      }
+
+      ImGui.PopID();
+
+      return changed;
+    }
+
+    private bool DrawRadiosLine(string label, ref BattleEffect effect)
     {
       var changed = false;
 
@@ -200,28 +199,27 @@ namespace ClarityInChaos
       return changed;
     }
 
-    private void DrawGroupingSizeGroup(GroupingSize size, bool isActive)
+    private void DrawGroupingSizeGroup(ConfigForGroupingSize config, bool isActive)
     {
-      var configForGroupSize = plugin.Configuration.GetconfigForGroupingSize(size);
-      if (DrawCheckboxesGroup(ref configForGroupSize))
+      if (DrawTableGroup(ref config))
       {
         if (isActive)
         {
-          plugin.BattleEffectsConfigurator.UIChange(size);
+          plugin.BattleEffectsConfigurator.UIChange(config.Size);
         }
         plugin.Configuration.Save();
       }
     }
 
-    private void DrawPrettyHeader(GroupingSize size, bool isActive)
+    private void DrawPrettyHeader(ConfigForGroupingSize config, bool isActive)
     {
 
-      string headerText = size switch
+      string headerText = config.Size switch
       {
         GroupingSize.Solo => "Solo",
         GroupingSize.LightParty => "Light Party (4-man)",
         GroupingSize.FullParty => "Full Party (8-man)",
-        GroupingSize.Alliance => "Alliance (24-man)",
+        GroupingSize.Alliance => "Alliance Raids (24-man Duty)",
         _ => "Saved In-Game Settings",
       };
 
@@ -239,7 +237,7 @@ namespace ClarityInChaos
 
         ImGui.Indent();
 
-        DrawGroupingSizeGroup(size, isActive);
+        DrawGroupingSizeGroup(config, isActive);
 
         ImGui.Unindent();
       }
@@ -252,19 +250,14 @@ namespace ClarityInChaos
       }
     }
 
-    private void DrawMatrixSection()
+    private void DrawMatrixSection(ConfigForGroupingSize activeConfig)
     {
-      var groupSize = plugin.BattleEffectsConfigurator.GetCurrentGroupingSize();
-
-      DrawPrettyHeader(GroupingSize.Solo, groupSize == GroupingSize.Solo && plugin.Configuration.Enabled);
-
-      DrawPrettyHeader(GroupingSize.LightParty, groupSize == GroupingSize.LightParty && plugin.Configuration.Enabled);
-
-      DrawPrettyHeader(GroupingSize.FullParty, groupSize == GroupingSize.FullParty && plugin.Configuration.Enabled);
-
-      DrawPrettyHeader(GroupingSize.Alliance, groupSize == GroupingSize.Alliance && plugin.Configuration.Enabled);
-
-      DrawPrettyHeader(GroupingSize.Backup, !plugin.Configuration.Enabled);
+      DrawPrettyHeader(plugin.Configuration.Solo, plugin.Configuration.Solo == activeConfig && plugin.Configuration.Enabled);
+      DrawPrettyHeader(plugin.Configuration.LightParty, plugin.Configuration.LightParty == activeConfig && plugin.Configuration.Enabled);
+      DrawPrettyHeader(plugin.Configuration.FullParty, plugin.Configuration.FullParty == activeConfig && plugin.Configuration.Enabled);
+      DrawPrettyHeader(plugin.Configuration.Alliance, plugin.Configuration.Alliance == activeConfig && plugin.Configuration.Enabled);
+      
+      DrawPrettyHeader(plugin.Configuration.Backup, plugin.Configuration.Backup == activeConfig || !plugin.Configuration.Enabled);
     }
 
     public void DrawDebugSection()
@@ -289,17 +282,27 @@ namespace ClarityInChaos
           plugin.Configuration.Save();
         }
 
+        var forceInDuty = plugin.Configuration.DebugForceInDuty;
+        if (ImGui.Checkbox("Force In Duty", ref forceInDuty))
+        {
+          plugin.Configuration.DebugForceInDuty = forceInDuty;
+          plugin.Configuration.Save();
+        }
+
         ImGui.Unindent();
       }
     }
 
     public override void Draw()
     {
-      DrawSectionMasterEnable();
+      var groupSize = plugin.BattleEffectsConfigurator.GetCurrentGroupingSize();
+      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(groupSize, plugin.BoundByDuty);
+
+      DrawSectionMasterEnable(activeConfig);
 
       ImGui.Separator();
 
-      DrawMatrixSection();
+      DrawMatrixSection(activeConfig);
 
       ImGui.Separator();
 
