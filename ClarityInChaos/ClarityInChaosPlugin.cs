@@ -1,11 +1,9 @@
-﻿using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
+﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
-using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 
 namespace ClarityInChaos
 {
@@ -16,14 +14,15 @@ namespace ClarityInChaos
     private const string commandName = "/cic";
 
     public DalamudPluginInterface PluginInterface { get; init; }
-    public CommandManager CommandManager { get; init; }
-    public ChatGui ChatGui { get; init; }
-    public ClientState ClientState { get; init; }
+    public ICommandManager CommandManager { get; init; }
+    public IChatGui ChatGui { get; init; }
+    public IClientState ClientState { get; init; }
     public Configuration Configuration { get; init; }
     public WindowSystem WindowSystem { get; init; }
     public BattleEffectsConfigurator BattleEffectsConfigurator { get; init; }
-    public Condition Condition { get; init; }
+    public ICondition Condition { get; init; }
     public ClarityInChaosUI Window { get; init; }
+    public IPluginLog PluginLog { get; init; }
 
     public bool BoundByDuty => Configuration.DebugForceInDuty ||
                                (Condition[ConditionFlag.BoundByDuty]
@@ -32,9 +31,10 @@ namespace ClarityInChaos
 
     public ClarityInChaosPlugin(
         [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-        [RequiredVersion("1.0")] CommandManager commandManager,
-        [RequiredVersion("1.0")] ChatGui chatGui,
-        [RequiredVersion("1.0")] ClientState clientState)
+        [RequiredVersion("1.0")] ICommandManager commandManager,
+        [RequiredVersion("1.0")] IChatGui chatGui,
+        [RequiredVersion("1.0")] IClientState clientState,
+        [RequiredVersion("1.0")] IPluginLog pluginLog)
     {
       pluginInterface.Create<Service>();
       Condition = Service.Condition;
@@ -43,6 +43,7 @@ namespace ClarityInChaos
       CommandManager = commandManager;
       ChatGui = chatGui;
       ClientState = clientState;
+      PluginLog = pluginLog;
       WindowSystem = new("ClarityInChaosPlugin");
 
       Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
@@ -84,7 +85,7 @@ namespace ClarityInChaos
 
     public void PrintDebug(string message)
     {
-      PluginLog.LogDebug(message);
+      PluginLog.Debug(message);
       if (Configuration.DebugMessages)
       {
         ChatGui.Print($"Clarity In Chaos: {message}");
