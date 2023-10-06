@@ -256,7 +256,6 @@ namespace ClarityInChaos
       DrawPrettyHeader(plugin.Configuration.LightParty, plugin.Configuration.LightParty == activeConfig && plugin.Configuration.Enabled);
       DrawPrettyHeader(plugin.Configuration.FullParty, plugin.Configuration.FullParty == activeConfig && plugin.Configuration.Enabled);
       DrawPrettyHeader(plugin.Configuration.Alliance, plugin.Configuration.Alliance == activeConfig && plugin.Configuration.Enabled);
-      
       DrawPrettyHeader(plugin.Configuration.Backup, plugin.Configuration.Backup == activeConfig || !plugin.Configuration.Enabled);
     }
 
