@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Dalamud.Game;
-using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.Config;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.GeneratedSheets;
 
 namespace ClarityInChaos
@@ -13,8 +12,6 @@ namespace ClarityInChaos
   public unsafe class BattleEffectsConfigurator
   {
     private readonly ClarityInChaosPlugin plugin;
-
-    private readonly ConfigModule* configModule;
 
     private readonly GroupManager* groupManager;
 
@@ -32,11 +29,12 @@ namespace ClarityInChaos
     {
       get
       {
-        return (BattleEffect)configModule->GetIntValue(ConfigOption.BattleEffectSelf);
+        Service.GameConfig.TryGet(UiConfigOption.BattleEffectSelf, out uint beSelf);
+        return (BattleEffect)beSelf;
       }
       set
       {
-        configModule->SetOption(ConfigOption.BattleEffectSelf, (int)value);
+        Service.GameConfig.Set(UiConfigOption.BattleEffectSelf, (uint)value);
       }
     }
 
@@ -44,11 +42,12 @@ namespace ClarityInChaos
     {
       get
       {
-        return (BattleEffect)configModule->GetIntValue(ConfigOption.BattleEffectParty);
+        Service.GameConfig.TryGet(UiConfigOption.BattleEffectParty, out uint beParty);
+        return (BattleEffect)beParty;
       }
       set
       {
-        configModule->SetOption(ConfigOption.BattleEffectParty, (int)value);
+        Service.GameConfig.Set(UiConfigOption.BattleEffectParty, (uint)value);
       }
     }
 
@@ -56,18 +55,18 @@ namespace ClarityInChaos
     {
       get
       {
-        return (BattleEffect)configModule->GetIntValue(ConfigOption.BattleEffectOther);
+        Service.GameConfig.TryGet(UiConfigOption.BattleEffectOther, out uint beOther);
+        return (BattleEffect)beOther;
       }
       set
       {
-        configModule->SetOption(ConfigOption.BattleEffectOther, (int)value);
+        Service.GameConfig.Set(UiConfigOption.BattleEffectOther, (uint)value);
       }
     }
 
     public BattleEffectsConfigurator(ClarityInChaosPlugin plugin)
     {
       this.plugin = plugin;
-      configModule = ConfigModule.Instance();
       groupManager = GroupManager.Instance();
       lastEnabled = plugin.Configuration.Enabled;
       lastDebugDuty = plugin.Configuration.DebugForceInDuty;
@@ -133,7 +132,7 @@ namespace ClarityInChaos
       BattleEffectOther = config.Other;
     }
 
-    public void OnUpdate(Framework framework)
+    public void OnUpdate(IFramework framework)
     {
       if (!plugin.Configuration.Enabled && lastEnabled)
       {

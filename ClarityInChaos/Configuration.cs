@@ -1,7 +1,7 @@
 ﻿using Dalamud.Configuration;
+using Dalamud.Game.Config;
 using Dalamud.Plugin;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using Dalamud.Plugin.Services;
 using System;
 
 namespace ClarityInChaos
@@ -31,6 +31,7 @@ namespace ClarityInChaos
     [NonSerialized]
     private DalamudPluginInterface? pluginInterface;
 
+
     public Configuration()
     {
       Backup = new ConfigForBackup();
@@ -57,9 +58,12 @@ namespace ClarityInChaos
 
     private void ApplyDefaultConfig(ConfigForGroupingSize config)
     {
-      config.Self = (BattleEffect)ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectSelf);
-      config.Party = (BattleEffect)ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectParty);
-      config.Other = (BattleEffect)ConfigModule.Instance()->GetIntValue(ConfigOption.BattleEffectOther);
+      Service.GameConfig.TryGet(UiConfigOption.BattleEffectSelf, out uint beSelf);
+      config.Self = (BattleEffect)beSelf;
+      Service.GameConfig.TryGet(UiConfigOption.BattleEffectParty, out uint beParty);
+      config.Self = (BattleEffect)beParty;
+      Service.GameConfig.TryGet(UiConfigOption.BattleEffectOther, out uint beOther);
+      config.Self = (BattleEffect)beOther;
     }
 
     private bool InDutyFilter(ConfigForGroupingSize config, bool inDuty)
