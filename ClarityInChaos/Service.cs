@@ -7,7 +7,7 @@ namespace ClarityInChaos
   {
 #pragma warning disable CS8618
     [PluginService] public static IChatGui ChatGui { get; private set; }
-    [PluginService] public static IClientState ClientState { get; private set; } 
+    [PluginService] public static IClientState ClientState { get; private set; }
     [PluginService] public static ICondition Condition { get; private set; }
     [PluginService] public static IDataManager DataManager { get; private set; }
     [PluginService] public static IFramework Framework { get; private set; }

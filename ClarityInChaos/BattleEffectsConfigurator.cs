@@ -19,11 +19,9 @@ namespace ClarityInChaos
 
     private ConfigForGroupingSize lastActiveConfig;
 
-    private bool firstLoop = true;
     private bool lastEnabled;
-    private bool lastDebugDuty;
 
-    private GroupingSize lastGroupingSize;
+    private bool lastDebugDuty;
 
     public BattleEffect BattleEffectSelf
     {
@@ -76,7 +74,7 @@ namespace ClarityInChaos
         .Where((r) => r.TerritoryIntendedUse is 41 or 48)
         .Select((r) => r.RowId)
         .ToList();
-        
+
       lastActiveConfig = plugin.Configuration.GetConfigForGroupingSize(GetCurrentGroupingSize(), plugin.BoundByDuty);
     }
 
