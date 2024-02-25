@@ -1,7 +1,6 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using System;
 
 namespace ClarityInChaos
@@ -31,19 +30,22 @@ namespace ClarityInChaos
     [NonSerialized]
     private DalamudPluginInterface? pluginInterface;
 
-
-    public Configuration()
+    public Configuration(bool isFresh = false)
     {
       Backup = new ConfigForBackup();
-      ApplyDefaultConfig(Backup);
       Solo = new ConfigForSolo();
-      ApplyDefaultConfig(Solo);
       LightParty = new ConfigForLightParty();
-      ApplyDefaultConfig(LightParty);
       FullParty = new ConfigForFullParty();
-      ApplyDefaultConfig(FullParty);
       Alliance = new ConfigForAlliance();
-      ApplyDefaultConfig(Alliance);
+
+      if (isFresh)
+      {
+        ApplyDefaultConfig(Backup);
+        ApplyDefaultConfig(Solo);
+        ApplyDefaultConfig(LightParty);
+        ApplyDefaultConfig(FullParty);
+        ApplyDefaultConfig(Alliance);
+      }
     }
 
     public void Initialize(DalamudPluginInterface pluginInterface)
@@ -61,9 +63,20 @@ namespace ClarityInChaos
       Service.GameConfig.TryGet(UiConfigOption.BattleEffectSelf, out uint beSelf);
       config.Self = (BattleEffect)beSelf;
       Service.GameConfig.TryGet(UiConfigOption.BattleEffectParty, out uint beParty);
-      config.Self = (BattleEffect)beParty;
+      config.Party = (BattleEffect)beParty;
       Service.GameConfig.TryGet(UiConfigOption.BattleEffectOther, out uint beOther);
-      config.Self = (BattleEffect)beOther;
+      config.Other = (BattleEffect)beOther;
+
+      Service.GameConfig.TryGet(UiConfigOption.NamePlateDispTypeSelf, out uint npSelf);
+      config.OwnNameplate = (NameplateVisibility)npSelf;
+      Service.GameConfig.TryGet(UiConfigOption.NamePlateDispTypeParty, out uint npParty);
+      config.PartyNameplate = (NameplateVisibility)npParty;
+      Service.GameConfig.TryGet(UiConfigOption.NamePlateDispTypeAlliance, out uint npAlliance);
+      config.AllianceNameplate = (NameplateVisibility)npAlliance;
+      Service.GameConfig.TryGet(UiConfigOption.NamePlateDispTypeOther, out uint npOthers);
+      config.OthersNameplate = (NameplateVisibility)npOthers;
+      Service.GameConfig.TryGet(UiConfigOption.NamePlateDispTypeFriend, out uint npFriends);
+      config.FriendsNameplate = (NameplateVisibility)npFriends;
     }
 
     private bool InDutyFilter(ConfigForGroupingSize config, bool inDuty)
@@ -119,6 +132,12 @@ namespace ClarityInChaos
     public BattleEffect Self { get; set; }
     public BattleEffect Party { get; set; }
     public BattleEffect Other { get; set; }
+
+    public NameplateVisibility OwnNameplate { get; set; }
+    public NameplateVisibility PartyNameplate { get; set; }
+    public NameplateVisibility AllianceNameplate { get; set; }
+    public NameplateVisibility OthersNameplate { get; set; }
+    public NameplateVisibility FriendsNameplate { get; set; }
 
     public bool OnlyInDuty { get; set; }
   }

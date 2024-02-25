@@ -19,7 +19,7 @@ namespace ClarityInChaos
     public IClientState ClientState { get; init; }
     public Configuration Configuration { get; init; }
     public WindowSystem WindowSystem { get; init; }
-    public BattleEffectsConfigurator BattleEffectsConfigurator { get; init; }
+    public UiSettingsConfigurator BattleEffectsConfigurator { get; init; }
     public ICondition Condition { get; init; }
     public ClarityInChaosUI Window { get; init; }
     public IPluginLog PluginLog { get; init; }
@@ -38,7 +38,7 @@ namespace ClarityInChaos
     {
       pluginInterface.Create<Service>();
       Condition = Service.Condition;
-
+ 
       PluginInterface = pluginInterface;
       CommandManager = commandManager;
       ChatGui = chatGui;
@@ -46,10 +46,10 @@ namespace ClarityInChaos
       PluginLog = pluginLog;
       WindowSystem = new("ClarityInChaosPlugin");
 
-      Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+      Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration(true);
       Configuration.Initialize(PluginInterface);
 
-      BattleEffectsConfigurator = new BattleEffectsConfigurator(this);
+      BattleEffectsConfigurator = new UiSettingsConfigurator(this);
 
       Window = new ClarityInChaosUI(this)
       {

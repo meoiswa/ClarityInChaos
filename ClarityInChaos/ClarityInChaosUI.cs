@@ -5,8 +5,6 @@ using System.Numerics;
 
 namespace ClarityInChaos
 {
-  // It is good to have this be disposable in general, in case you ever need it
-  // to do any cleanup
   public unsafe class ClarityInChaosUI : Window, IDisposable
   {
     private readonly ClarityInChaosPlugin plugin;
@@ -101,34 +99,141 @@ namespace ClarityInChaos
       ImGui.Unindent();
     }
 
-    private bool DrawTableGroup(ref ConfigForGroupingSize config)
+    private void DrawBattleEffectsTableHeader()
+    {
+      ImGui.TableNextRow();
+
+      ImGui.TableSetColumnIndex(1);
+      ImGui.Text("  All  ");
+
+      ImGui.TableSetColumnIndex(2);
+      ImGui.Text("Limited");
+
+      ImGui.TableSetColumnIndex(3);
+      ImGui.Text("None");
+    }
+
+    private bool DrawBattleEffectsTable(ref ConfigForGroupingSize config)
     {
       var changed = false;
+      ImGui.BeginTable("Table", 4);
+
       var self = config.Self;
       var party = config.Party;
       var other = config.Other;
-      var onlyInDuty = config.OnlyInDuty;
 
-      ImGui.PushID($"{config.Size}");
+      DrawBattleEffectsTableHeader();
 
-      ImGui.BeginTable("Table", 4);
-
-
-      if (DrawRadiosLine($"Own", ref self))
+      if (DrawBfxRadiosLine($"Own", ref self))
       {
         config.Self = self;
         changed = true;
       }
-      if (DrawRadiosLine($"Party", ref party))
+      if (DrawBfxRadiosLine($"Party", ref party))
       {
         config.Party = party;
         changed = true;
       }
-      if (DrawRadiosLine($"Others (excl. PvP)", ref other))
+      if (DrawBfxRadiosLine($"Others (excl. PvP)", ref other))
       {
         config.Other = other;
         changed = true;
       }
+      ImGui.EndTable();
+      return changed;
+    }
+
+    private void DrawNameplatesTableHeader()
+    {
+      ImGui.TableNextRow();
+
+      ImGui.TableSetColumnIndex(1);
+      ImGui.Text("Always");
+
+      ImGui.TableSetColumnIndex(2);
+      ImGui.Text("During Battle");
+
+      ImGui.TableSetColumnIndex(3);
+      ImGui.Text("Out of Battle");
+
+      ImGui.TableSetColumnIndex(4);
+      ImGui.Text("When Targeted");
+
+      ImGui.TableSetColumnIndex(5);
+      ImGui.Text("Never");
+    }
+
+    private bool DrawNameplatesTable(ref ConfigForGroupingSize config)
+    {
+      var changed = false;
+      ImGui.BeginTable("Table", 6);
+
+      var own = config.OwnNameplate;
+      var party = config.PartyNameplate;
+      var alliance = config.AllianceNameplate;
+      var others = config.OthersNameplate;
+      var friends = config.FriendsNameplate;
+
+      DrawNameplatesTableHeader();
+
+      if (DrawNameplatesRadiosLine($"Own", ref own))
+      {
+        config.OwnNameplate = own;
+        changed = true;
+      }
+
+      if (DrawNameplatesRadiosLine($"Party", ref party))
+      {
+        config.PartyNameplate = party;
+        changed = true;
+      }
+
+      if (DrawNameplatesRadiosLine($"Alliance", ref alliance))
+      {
+        config.AllianceNameplate = alliance;
+        changed = true;
+      }
+
+      if (DrawNameplatesRadiosLine($"Others", ref others))
+      {
+        config.OthersNameplate = others;
+        changed = true;
+      }
+
+      if (DrawNameplatesRadiosLine($"Friends", ref friends))
+      {
+        config.FriendsNameplate = friends;
+        changed = true;
+      }
+
+      ImGui.EndTable();
+      return changed;
+    }
+
+    private bool DrawTableGroup(ref ConfigForGroupingSize config)
+    {
+      var changed = false;
+
+      ImGui.BeginTabBar("TabBar");
+
+      if (ImGui.BeginTabItem("Battle Effects"))
+      {
+        ImGui.Indent();
+        changed |= DrawBattleEffectsTable(ref config);
+        ImGui.Unindent();
+        ImGui.EndTabItem();
+      }
+
+      if (ImGui.BeginTabItem("Nameplates"))
+      {
+        ImGui.Indent();
+        changed |= DrawNameplatesTable(ref config);
+        ImGui.Unindent();
+        ImGui.EndTabItem();
+      }
+
+      ImGui.BeginTable("Table2", 4);
+      var onlyInDuty = config.OnlyInDuty;
       if (config.Size != GroupingSize.Backup && config.Size != GroupingSize.Alliance && DrawOnlyInDutyCheckbox($"Only In Duty", ref onlyInDuty))
       {
         config.OnlyInDuty = onlyInDuty;
@@ -136,8 +241,6 @@ namespace ClarityInChaos
       }
 
       ImGui.EndTable();
-
-      ImGui.PopID();
 
       return changed;
     }
@@ -150,20 +253,16 @@ namespace ClarityInChaos
       ImGui.TableSetColumnIndex(0);
       ImGui.Text(label);
 
-      ImGui.PushID(label);
-
       ImGui.TableSetColumnIndex(1);
       if (ImGui.Checkbox($"##{label}", ref onlyInDuty))
       {
         changed = true;
       }
 
-      ImGui.PopID();
-
       return changed;
     }
 
-    private bool DrawRadiosLine(string label, ref BattleEffect effect)
+    private bool DrawBfxRadiosLine(string label, ref BattleEffect effect)
     {
       var changed = false;
 
@@ -174,23 +273,81 @@ namespace ClarityInChaos
       ImGui.PushID(label);
 
       ImGui.TableSetColumnIndex(1);
-      if (ImGui.RadioButton($"All", effect is BattleEffect.All))
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##All", effect is BattleEffect.All))
       {
         effect = BattleEffect.All;
         changed = true;
       }
 
       ImGui.TableSetColumnIndex(2);
-      if (ImGui.RadioButton($"Limited", effect is BattleEffect.Limited))
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##Limited", effect is BattleEffect.Limited))
       {
         effect = BattleEffect.Limited;
         changed = true;
       }
 
       ImGui.TableSetColumnIndex(3);
-      if (ImGui.RadioButton($"None", effect is BattleEffect.None))
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##None", effect is BattleEffect.None))
       {
         effect = BattleEffect.None;
+        changed = true;
+      }
+
+      ImGui.PopID();
+
+      return changed;
+    }
+
+    private bool DrawNameplatesRadiosLine(string label, ref NameplateVisibility effect)
+    {
+      var changed = false;
+
+      ImGui.TableNextRow();
+      ImGui.TableSetColumnIndex(0);
+      ImGui.Text(label);
+
+      ImGui.PushID(label);
+
+      ImGui.TableSetColumnIndex(1);
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##Always", effect is NameplateVisibility.Always))
+      {
+        effect = NameplateVisibility.Always;
+        changed = true;
+      }
+
+      ImGui.TableSetColumnIndex(2);
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##During Battle", effect is NameplateVisibility.DuringBattle))
+      {
+        effect = NameplateVisibility.DuringBattle;
+        changed = true;
+      }
+
+      ImGui.TableSetColumnIndex(3);
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##Out of Battle", effect is NameplateVisibility.OutofBattle))
+      {
+        effect = NameplateVisibility.OutofBattle;
+        changed = true;
+      }
+
+      ImGui.TableSetColumnIndex(4);
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##When Targeted", effect is NameplateVisibility.WhenTargeted))
+      {
+        effect = NameplateVisibility.WhenTargeted;
+        changed = true;
+      }
+
+      ImGui.TableSetColumnIndex(5);
+      ImGui.SetCursorPosX(ImGui.GetCursorPos().X + (ImGui.GetContentRegionAvail().X - 24) / 2f);
+      if (ImGui.RadioButton($"##Never", effect is NameplateVisibility.Never))
+      {
+        effect = NameplateVisibility.Never;
         changed = true;
       }
 
@@ -213,7 +370,6 @@ namespace ClarityInChaos
 
     private void DrawPrettyHeader(ConfigForGroupingSize config, bool isActive)
     {
-
       string headerText = config.Size switch
       {
         GroupingSize.Solo => "Solo",
@@ -250,7 +406,7 @@ namespace ClarityInChaos
       }
     }
 
-    private void DrawMatrixSection(ConfigForGroupingSize activeConfig)
+    private void DrawBattleEffectsMatrixSection(ConfigForGroupingSize activeConfig)
     {
       DrawPrettyHeader(plugin.Configuration.Solo, plugin.Configuration.Solo == activeConfig && plugin.Configuration.Enabled);
       DrawPrettyHeader(plugin.Configuration.LightParty, plugin.Configuration.LightParty == activeConfig && plugin.Configuration.Enabled);
@@ -301,7 +457,7 @@ namespace ClarityInChaos
 
       ImGui.Separator();
 
-      DrawMatrixSection(activeConfig);
+      DrawBattleEffectsMatrixSection(activeConfig);
 
       ImGui.Separator();
 
