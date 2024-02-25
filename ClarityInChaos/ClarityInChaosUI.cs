@@ -242,6 +242,8 @@ namespace ClarityInChaos
 
       ImGui.EndTable();
 
+      ImGui.EndTabBar();
+
       return changed;
     }
 
@@ -384,6 +386,7 @@ namespace ClarityInChaos
         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
       }
 
+      ImGui.PushID(headerText);
       if (ImGui.CollapsingHeader(headerText))
       {
         if (isActive)
@@ -404,6 +407,7 @@ namespace ClarityInChaos
           ImGui.PopStyleColor();
         }
       }
+      ImGui.PopID();
     }
 
     private void DrawBattleEffectsMatrixSection(ConfigForGroupingSize activeConfig)
