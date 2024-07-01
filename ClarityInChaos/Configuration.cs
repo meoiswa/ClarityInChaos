@@ -28,7 +28,7 @@ namespace ClarityInChaos
 
     // the below exist just to make saving less cumbersome
     [NonSerialized]
-    private DalamudPluginInterface? pluginInterface;
+    private IDalamudPluginInterface? pluginInterface;
 
     public Configuration(bool isFresh = false)
     {
@@ -48,7 +48,7 @@ namespace ClarityInChaos
       }
     }
 
-    public void Initialize(DalamudPluginInterface pluginInterface)
+    public void Initialize(IDalamudPluginInterface pluginInterface)
     {
       this.pluginInterface = pluginInterface;
     }
@@ -77,11 +77,6 @@ namespace ClarityInChaos
       config.OthersNameplate = (NameplateVisibility)npOthers;
       Service.GameConfig.TryGet(UiConfigOption.NamePlateDispTypeFriend, out uint npFriends);
       config.FriendsNameplate = (NameplateVisibility)npFriends;
-    }
-
-    private bool InDutyFilter(ConfigForGroupingSize config, bool inDuty)
-    {
-      return !config.OnlyInDuty || (config.OnlyInDuty && inDuty);
     }
 
     private ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size)

@@ -17,10 +17,6 @@ namespace ClarityInChaos
 
     private ConfigForGroupingSize? lastActiveConfig = null;
 
-    private bool lastEnabled;
-
-    private bool lastDebugDuty;
-
     public BattleEffect BattleEffectSelf
     {
       get
@@ -129,11 +125,9 @@ namespace ClarityInChaos
     {
       this.plugin = plugin;
       groupManager = GroupManager.Instance();
-      lastEnabled = plugin.Configuration.Enabled;
-      lastDebugDuty = plugin.Configuration.DebugForceInDuty;
 
       AllianceDutyIds = Service.DataManager
-        .GetExcelSheet<TerritoryType>(Dalamud.ClientLanguage.English)!
+        .GetExcelSheet<TerritoryType>(Dalamud.Game.ClientLanguage.English)!
         .Where((r) => r.TerritoryIntendedUse is 41 or 48)
         .Select((r) => r.RowId)
         .ToList();
@@ -141,13 +135,13 @@ namespace ClarityInChaos
 
     public bool IsTerritoryAllianceLike()
     {
-      return AllianceDutyIds.FindIndex((r) => r == plugin.ClientState.TerritoryType) >= 0;
+      return AllianceDutyIds.FindIndex((r) => r == Service.ClientState.TerritoryType) >= 0;
     }
 
     public GroupingSize GetCurrentGroupingSize()
     {
-      var memberCount = groupManager->MemberCount;
-      var allianceFlags = groupManager->AllianceFlags;
+      var memberCount = groupManager->MainGroup.MemberCount;
+      var allianceFlags = groupManager->MainGroup.AllianceFlags;
 
       if (plugin.Configuration.DebugForcePartySize)
       {
