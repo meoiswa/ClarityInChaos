@@ -22,7 +22,7 @@ namespace ClarityInChaos
       SizeConstraints = new WindowSizeConstraints()
       {
         MinimumSize = new Vector2(468, 0),
-        MaximumSize = new Vector2(468, 1000)
+        MaximumSize = new Vector2(1000, 1000)
       };
     }
 
