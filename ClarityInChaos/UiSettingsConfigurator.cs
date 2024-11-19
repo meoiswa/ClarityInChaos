@@ -3,7 +3,7 @@ using System.Linq;
 using Dalamud.Game.Config;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace ClarityInChaos
 {
@@ -128,7 +128,7 @@ namespace ClarityInChaos
 
       AllianceDutyIds = Service.DataManager
         .GetExcelSheet<TerritoryType>(Dalamud.Game.ClientLanguage.English)!
-        .Where((r) => r.TerritoryIntendedUse is 41 or 48)
+        .Where((r) => r.TerritoryIntendedUse.RowId is 41 or 48)
         .Select((r) => r.RowId)
         .ToList();
     }
