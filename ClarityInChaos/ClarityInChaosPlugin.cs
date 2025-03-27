@@ -30,7 +30,7 @@ namespace ClarityInChaos
         ICommandManager commandManager)
     {
       pluginInterface.Create<Service>();
- 
+      
       PluginInterface = pluginInterface;
       CommandManager = commandManager;
       WindowSystem = new("ClarityInChaosPlugin");

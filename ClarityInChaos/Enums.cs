@@ -24,4 +24,16 @@ namespace ClarityInChaos
     Never,
     OutofBattle,
   }
+
+  public enum HighlightColor
+  {
+    None,
+    Red,
+    Green,
+    Blue,
+    Yellow,
+    Orange,
+    Magenta,
+    Black
+  }
 }

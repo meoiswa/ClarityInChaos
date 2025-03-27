@@ -1,6 +1,7 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System;
 
 namespace ClarityInChaos
@@ -133,6 +134,10 @@ namespace ClarityInChaos
     public NameplateVisibility AllianceNameplate { get; set; }
     public NameplateVisibility OthersNameplate { get; set; }
     public NameplateVisibility FriendsNameplate { get; set; }
+
+    public ObjectHighlightColor OwnHighlight { get; set; }
+    public ObjectHighlightColor PartyHighlight { get; set; }
+    public ObjectHighlightColor OthersHighlight { get; set; }
 
     public bool OnlyInDuty { get; set; }
   }

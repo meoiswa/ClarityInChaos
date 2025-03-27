@@ -1,4 +1,5 @@
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using System;
 using System.Numerics;
@@ -21,7 +22,7 @@ namespace ClarityInChaos
 
       SizeConstraints = new WindowSizeConstraints()
       {
-        MinimumSize = new Vector2(468, 0),
+        MinimumSize = new Vector2(488, 0),
         MaximumSize = new Vector2(1000, 1000)
       };
     }
@@ -210,6 +211,47 @@ namespace ClarityInChaos
       return changed;
     }
 
+    private void DrawHighlightsTableHeader()
+    {
+      ImGui.TableNextRow();
+
+      ImGui.TableSetColumnIndex(1);
+      ImGui.Text("Highlight                           ");
+    }
+
+    private bool DrawHighlightsTable(ref ConfigForGroupingSize config)
+    {
+      var changed = false;
+      ImGui.BeginTable("Table", 2);
+
+      var own = config.OwnHighlight;
+      var party = config.PartyHighlight;
+      var others = config.OthersHighlight;
+
+      DrawHighlightsTableHeader();
+
+      if (DrawHighlightsSelectLine($"Own", ref own))
+      {
+        config.OwnHighlight = own;
+        changed = true;
+      }
+
+      if (DrawHighlightsSelectLine($"Party", ref party))
+      {
+        config.PartyHighlight = party;
+        changed = true;
+      }
+
+      if (DrawHighlightsSelectLine($"Others", ref others))
+      {
+        config.OthersHighlight = others;
+        changed = true;
+      }
+
+      ImGui.EndTable();
+      return changed;
+    }
+
     private bool DrawTableGroup(ref ConfigForGroupingSize config)
     {
       var changed = false;
@@ -228,6 +270,14 @@ namespace ClarityInChaos
       {
         ImGui.Indent();
         changed |= DrawNameplatesTable(ref config);
+        ImGui.Unindent();
+        ImGui.EndTabItem();
+      }
+
+      if (ImGui.BeginTabItem("Highlights"))
+      {
+        ImGui.Indent();
+        changed |= DrawHighlightsTable(ref config);
         ImGui.Unindent();
         ImGui.EndTabItem();
       }
@@ -350,6 +400,29 @@ namespace ClarityInChaos
       if (ImGui.RadioButton($"##Never", effect is NameplateVisibility.Never))
       {
         effect = NameplateVisibility.Never;
+        changed = true;
+      }
+
+      ImGui.PopID();
+
+      return changed;
+    }
+
+    private bool DrawHighlightsSelectLine(string label, ref ObjectHighlightColor color)
+    {
+      var changed = false;
+
+      ImGui.TableNextRow();
+      ImGui.TableSetColumnIndex(0);
+      ImGui.Text(label);
+
+      ImGui.PushID(label);
+
+      ImGui.TableSetColumnIndex(1);
+      var proximityColor = (int)color;
+      if (ImGui.Combo("##color", ref proximityColor, "None\0Red\0Green\0Blue\0Yellow\0Orange\0Magenta\0"))
+      {
+        color = (ObjectHighlightColor)proximityColor;
         changed = true;
       }
 

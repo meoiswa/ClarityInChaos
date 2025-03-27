@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Config;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Group;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel.Sheets;
 
 namespace ClarityInChaos
@@ -193,6 +196,7 @@ namespace ClarityInChaos
       AllianceNameplate = config.AllianceNameplate;
       OthersNameplate = config.OthersNameplate;
       FriendsNameplate = config.FriendsNameplate;
+      ClearHighlights();
     }
 
     public void OnUpdate(IFramework framework)
@@ -269,10 +273,64 @@ namespace ClarityInChaos
 
       if (changed)
       {
+        ClearHighlights();
         plugin.PrintDebug("Updated UiSettings!");
       }
 
+      if (plugin.Configuration.Enabled)
+      {
+        UpdateHighlights(activeConfig);
+      }
+
       lastActiveConfig = activeConfig;
+    }
+
+    public void ClearHighlights()
+    {
+      var pcKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player;
+      foreach (var gameObject in Service.ObjectTable.Where(o => o.ObjectKind == pcKind))
+      {
+        ApplyHighlight(gameObject?.Address, ObjectHighlightColor.None);
+      }
+    }
+
+    public void UpdateHighlights(ConfigForGroupingSize config)
+    {
+      var pcKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player;
+      var pcs = Service.ObjectTable.Where(o => o.ObjectKind == pcKind && o.EntityId != Service.ClientState.LocalPlayer?.EntityId);
+      var party = groupManager->MainGroup.PartyMembers.ToArray();
+      var partyMembers = pcs.Where(o => party.Any(p => p.EntityId == o.EntityId));
+      var others = pcs.Where(o => !party.Any(p => p.EntityId == o.EntityId));
+
+      if (config.OthersHighlight != ObjectHighlightColor.None)
+      {
+        foreach (var gameObject in others)
+        {
+          ApplyHighlight(gameObject?.Address, config.OthersHighlight);
+        }
+      }
+
+      if (config.PartyHighlight != ObjectHighlightColor.None)
+      {
+        foreach (var gameObject in partyMembers)
+        {
+          ApplyHighlight(gameObject?.Address, config.PartyHighlight);
+        }
+      }
+
+      if (config.OwnHighlight != ObjectHighlightColor.None)
+      {
+        ApplyHighlight(Service.ClientState.LocalPlayer?.Address, config.OwnHighlight);
+      }
+    }
+
+    public void ApplyHighlight(IntPtr? gameObject, ObjectHighlightColor color)
+    {
+      if (gameObject.HasValue && gameObject != IntPtr.Zero)
+      {
+        var ptr = (GameObject*)gameObject;
+        ptr->Highlight(color);
+      }
     }
   }
 }

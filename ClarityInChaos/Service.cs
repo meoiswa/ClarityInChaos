@@ -12,6 +12,8 @@ namespace ClarityInChaos
     [PluginService] public static IDataManager DataManager { get; private set; }
     [PluginService] public static IFramework Framework { get; private set; }
     [PluginService] public static IGameConfig GameConfig { get; private set; }
+    [PluginService] public static IObjectTable ObjectTable { get; private set; }
+    [PluginService] public static IGameInteropProvider IGameInterop { get; private set; }
     [PluginService] public static IPluginLog PluginLog { get; private set; }
 #pragma warning restore CS8618
   }
