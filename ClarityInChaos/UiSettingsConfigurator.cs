@@ -131,7 +131,7 @@ namespace ClarityInChaos
 
       AllianceDutyIds = Service.DataManager
         .GetExcelSheet<TerritoryType>(Dalamud.Game.ClientLanguage.English)!
-        .Where((r) => r.TerritoryIntendedUse.RowId is 41 or 48)
+        .Where((r) => r.TerritoryIntendedUse.RowId is 41 or 48 or 61)
         .Select((r) => r.RowId)
         .ToList();
     }
