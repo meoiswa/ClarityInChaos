@@ -23,6 +23,9 @@ namespace ClarityInChaos
                                (Service.Condition[ConditionFlag.BoundByDuty]
                                 && !Service.Condition[ConditionFlag.BetweenAreas]
                                 && !Service.Condition[ConditionFlag.OccupiedInCutSceneEvent]);
+    public bool IsMeleeClass => Configuration.DebugForceIsMeleeClass ||
+                               (Service.PlayerState.ClassJob.Value.JobType == 1) ||
+                               (Service.PlayerState.ClassJob.Value.JobType == 3);
 
     public ClarityInChaosPlugin(
         IDalamudPluginInterface pluginInterface,

@@ -355,6 +355,12 @@ namespace ClarityInChaos
         config.OnlyInDuty = onlyInDuty;
         changed = true;
       }
+      var OnlyAsMeleeClass = config.OnlyAsMeleeClass;
+      if (config.Size != GroupingSize.Backup && config.Size != GroupingSize.Alliance && DrawOnlyAsMeleeClassCheckbox($"Only As Tank / Melee DPS", ref OnlyAsMeleeClass))
+      {
+        config.OnlyAsMeleeClass = OnlyAsMeleeClass;
+        changed = true;
+      }
 
       ImGui.EndTable();
 
@@ -373,6 +379,22 @@ namespace ClarityInChaos
 
       ImGui.TableSetColumnIndex(1);
       if (ImGui.Checkbox($"##{label}", ref onlyInDuty))
+      {
+        changed = true;
+      }
+
+      return changed;
+    }
+    private bool DrawOnlyAsMeleeClassCheckbox(string label, ref bool OnlyAsMeleeClass)
+    {
+      var changed = false;
+
+      ImGui.TableNextRow();
+      ImGui.TableSetColumnIndex(0);
+      ImGui.Text(label);
+
+      ImGui.TableSetColumnIndex(1);
+      if (ImGui.Checkbox($"##{label}", ref OnlyAsMeleeClass))
       {
         changed = true;
       }
@@ -617,6 +639,12 @@ namespace ClarityInChaos
           plugin.Configuration.DebugForceInDuty = forceInDuty;
           plugin.Configuration.Save();
         }
+        var forceIsMeleeClass = plugin.Configuration.DebugForceIsMeleeClass;
+        if (ImGui.Checkbox("Force Is Tank / Melee DPS", ref forceIsMeleeClass))
+        {
+          plugin.Configuration.DebugForceIsMeleeClass = forceIsMeleeClass;
+          plugin.Configuration.Save();
+        }
 
         ImGui.Unindent();
       }
@@ -625,7 +653,7 @@ namespace ClarityInChaos
     public override void Draw()
     {
       var groupSize = plugin.BattleEffectsConfigurator.GetCurrentGroupingSize();
-      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(groupSize, plugin.BoundByDuty);
+      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(groupSize, plugin.BoundByDuty, plugin.IsMeleeClass);
 
       DrawSectionMasterEnable(activeConfig);
 

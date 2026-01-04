@@ -26,6 +26,7 @@ namespace ClarityInChaos
     public bool DebugForcePartySize = false;
     public int DebugPartySize = 0;
     public bool DebugForceInDuty = false;
+    public bool DebugForceIsMeleeClass = false;
 
     // the below exist just to make saving less cumbersome
     [NonSerialized]
@@ -102,11 +103,11 @@ namespace ClarityInChaos
         _ => Backup,
       };
     }
-
-    private ConfigForGroupingSize GetConfigForGroupingSizeNotInDuty(GroupingSize size)
+    private ConfigForGroupingSize GetConfigForGroupingSizeNotInDuty(GroupingSize size, bool IsMeleeClass)
     {
       var config = GetConfigForGroupingSize(size);
-      if (config.OnlyInDuty)
+
+      if (config.OnlyInDuty || (config.OnlyAsMeleeClass && !IsMeleeClass))
       {
         if (size == GroupingSize.Backup)
         {
@@ -114,13 +115,13 @@ namespace ClarityInChaos
         }
         else
         {
-          return GetConfigForGroupingSizeNotInDuty(size - 1);
+          return GetConfigForGroupingSizeNotInDuty(size - 1, IsMeleeClass);
         }
       }
       return config;
     }
 
-    public ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size, bool inDuty)
+    public ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size, bool inDuty, bool IsMeleeClass)
     {
       if (inDuty)
       {
@@ -128,7 +129,7 @@ namespace ClarityInChaos
       }
       else
       {
-        return GetConfigForGroupingSizeNotInDuty(size);
+        return GetConfigForGroupingSizeNotInDuty(size, IsMeleeClass);
       }
     }
   }
@@ -157,6 +158,7 @@ namespace ClarityInChaos
     public ObjectHighlightColor OthersHighlight { get; set; }
 
     public bool OnlyInDuty { get; set; }
+    public bool OnlyAsMeleeClass { get; set; }
   }
 
   public class ConfigForBackup : ConfigForGroupingSize

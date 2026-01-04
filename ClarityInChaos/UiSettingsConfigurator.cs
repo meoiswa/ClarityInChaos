@@ -233,7 +233,7 @@ namespace ClarityInChaos
     public void UIChange(GroupingSize size)
     {
 
-      var config = plugin.Configuration.GetConfigForGroupingSize(size, plugin.BoundByDuty);
+      var config = plugin.Configuration.GetConfigForGroupingSize(size, plugin.BoundByDuty, plugin.IsMeleeClass);
       BattleEffectSelf = config.Self;
       BattleEffectParty = config.Party;
       BattleEffectOther = config.Other;
@@ -252,7 +252,7 @@ namespace ClarityInChaos
 
     public void OnUpdate(IFramework framework)
     {
-      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(GetCurrentGroupingSize(), plugin.BoundByDuty);
+      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(GetCurrentGroupingSize(), plugin.BoundByDuty, plugin.IsMeleeClass);
 
       if (!plugin.Configuration.Enabled)
       {
