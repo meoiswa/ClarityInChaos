@@ -343,7 +343,7 @@ namespace ClarityInChaos
 
     public void ClearHighlights()
     {
-      var pcKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player;
+      var pcKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc;
       foreach (var gameObject in Service.ObjectTable.Where(o => o.ObjectKind == pcKind))
       {
         ApplyHighlight(gameObject?.Address, ObjectHighlightColor.None);
@@ -352,7 +352,7 @@ namespace ClarityInChaos
 
     public void UpdateHighlights(ConfigForGroupingSize config)
     {
-      var pcKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player;
+      var pcKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc;
       var pcs = Service.ObjectTable.Where(o => o.ObjectKind == pcKind && o.EntityId != Service.PlayerState.EntityId);
       var party = groupManager->MainGroup.PartyMembers.ToArray();
       var partyMembers = pcs.Where(o => party.Any(p => p.EntityId == o.EntityId));
