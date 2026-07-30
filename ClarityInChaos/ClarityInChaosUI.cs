@@ -631,6 +631,13 @@ namespace ClarityInChaos
           plugin.Configuration.Save();
         }
 
+        var forceInBattle = plugin.Configuration.DebugForceInBattle;
+        if (ImGui.Checkbox("Force In Battle", ref forceInBattle))
+        {
+          plugin.Configuration.DebugForceInBattle = forceInBattle;
+          plugin.Configuration.Save();
+        }
+
         ImGui.Unindent();
       }
     }

@@ -26,6 +26,7 @@ namespace ClarityInChaos
     public bool DebugForcePartySize = false;
     public int DebugPartySize = 0;
     public bool DebugForceInDuty = false;
+    public bool DebugForceInBattle = false;
 
     // the below exist just to make saving less cumbersome
     [NonSerialized]
