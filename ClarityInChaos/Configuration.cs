@@ -103,33 +103,17 @@ namespace ClarityInChaos
       };
     }
 
-    private ConfigForGroupingSize GetConfigForGroupingSizeNotInDuty(GroupingSize size)
+    public ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size, bool inDuty, bool inBattle)
     {
       var config = GetConfigForGroupingSize(size);
-      if (config.OnlyInDuty)
+      if (size == GroupingSize.Backup ||
+          (!config.OnlyInDuty || inDuty) &&
+          (!config.OnlyInBattle || inBattle))
       {
-        if (size == GroupingSize.Backup)
-        {
-          return Backup;
-        }
-        else
-        {
-          return GetConfigForGroupingSizeNotInDuty(size - 1);
-        }
+        return config;
       }
-      return config;
-    }
 
-    public ConfigForGroupingSize GetConfigForGroupingSize(GroupingSize size, bool inDuty)
-    {
-      if (inDuty)
-      {
-        return GetConfigForGroupingSize(size);
-      }
-      else
-      {
-        return GetConfigForGroupingSizeNotInDuty(size);
-      }
+      return GetConfigForGroupingSize(size - 1, inDuty, inBattle);
     }
   }
 
@@ -157,6 +141,7 @@ namespace ClarityInChaos
     public ObjectHighlightColor OthersHighlight { get; set; }
 
     public bool OnlyInDuty { get; set; }
+    public bool OnlyInBattle { get; set; }
   }
 
   public class ConfigForBackup : ConfigForGroupingSize

@@ -24,6 +24,8 @@ namespace ClarityInChaos
                                 && !Service.Condition[ConditionFlag.BetweenAreas]
                                 && !Service.Condition[ConditionFlag.OccupiedInCutSceneEvent]);
 
+    public bool InBattle => Service.Condition[ConditionFlag.InCombat];
+
     public ClarityInChaosPlugin(
         IDalamudPluginInterface pluginInterface,
         ICommandManager commandManager)

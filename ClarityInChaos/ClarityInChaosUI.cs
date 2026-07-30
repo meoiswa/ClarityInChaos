@@ -349,10 +349,24 @@ namespace ClarityInChaos
       }
 
       ImGui.BeginTable("Table2", 4);
+      ImGui.TableNextRow();
+
+      var battleLabelColumn = 0;
       var onlyInDuty = config.OnlyInDuty;
-      if (config.Size != GroupingSize.Backup && config.Size != GroupingSize.Alliance && DrawOnlyInDutyCheckbox($"Only In Duty", ref onlyInDuty))
+      if (config.Size != GroupingSize.Backup && config.Size != GroupingSize.Alliance)
       {
-        config.OnlyInDuty = onlyInDuty;
+        battleLabelColumn = 2;
+        if (DrawConditionCheckbox("Only In Duty", ref onlyInDuty, 0))
+        {
+          config.OnlyInDuty = onlyInDuty;
+          changed = true;
+        }
+      }
+
+      var onlyInBattle = config.OnlyInBattle;
+      if (config.Size != GroupingSize.Backup && DrawConditionCheckbox("Only In Battle", ref onlyInBattle, battleLabelColumn))
+      {
+        config.OnlyInBattle = onlyInBattle;
         changed = true;
       }
 
@@ -363,16 +377,15 @@ namespace ClarityInChaos
       return changed;
     }
 
-    private bool DrawOnlyInDutyCheckbox(string label, ref bool onlyInDuty)
+    private bool DrawConditionCheckbox(string label, ref bool value, int labelColumn)
     {
       var changed = false;
 
-      ImGui.TableNextRow();
-      ImGui.TableSetColumnIndex(0);
+      ImGui.TableSetColumnIndex(labelColumn);
       ImGui.Text(label);
 
-      ImGui.TableSetColumnIndex(1);
-      if (ImGui.Checkbox($"##{label}", ref onlyInDuty))
+      ImGui.TableSetColumnIndex(labelColumn + 1);
+      if (ImGui.Checkbox($"##{label}", ref value))
       {
         changed = true;
       }
@@ -625,7 +638,10 @@ namespace ClarityInChaos
     public override void Draw()
     {
       var groupSize = plugin.BattleEffectsConfigurator.GetCurrentGroupingSize();
-      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(groupSize, plugin.BoundByDuty);
+      var activeConfig = plugin.Configuration.GetConfigForGroupingSize(
+        groupSize,
+        plugin.BoundByDuty,
+        plugin.InBattle);
 
       DrawSectionMasterEnable(activeConfig);
 
